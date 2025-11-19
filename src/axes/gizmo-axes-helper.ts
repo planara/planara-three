@@ -1,3 +1,4 @@
+// Core
 import {
   CylinderGeometry,
   Group,
@@ -8,23 +9,16 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three';
-
-export interface GizmoAxesHelperOptions {
-  /** Толщина осей (радиус цилиндра) */
-  radius?: number;
-  /** Радиус шариков на концах */
-  sphereRadius?: number;
-  /** Цвет шариков для отрицательных направлений осей */
-  negativeColor?: number;
-}
-
-export type GizmoAxis = 'x+' | 'x-' | 'y+' | 'y-' | 'z+' | 'z-';
+// Types
+import type { GizmoAxesHelperOptions } from '../types/axes/gizmo-axes-helper-options';
+import type { GizmoAxis } from '../types/axes/gizmo-axes';
 
 /**
  * Симметричные оси:
  *  - Оси идут только в положительные направления (0 -> +L)
  *  - На концах осей цветные шарики (+X/+Y/+Z)
  *  - В отрицательных направлениях нет осей, только серые шарики (-X/-Y/-Z)
+ *  @public
  */
 export class GizmoAxesHelper extends Group {
   /** Объекты, по которым можно кликать (шарики) */

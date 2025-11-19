@@ -1,3 +1,4 @@
+// Core
 import {
   Scene,
   PerspectiveCamera,
@@ -10,16 +11,11 @@ import {
   Vector3,
   type Camera,
 } from 'three';
-import { GizmoAxesHelper, type GizmoAxis } from '../axes/gizmo-axes-helper';
-
-export interface CameraAxesGizmoOptions {
-  /** Размер квадрата под гизмо в пикселях */
-  size?: number;
-  /** Отступ от края в пикселях */
-  margin?: number;
-  /** Длительность анимации перелёта к оси (мс) */
-  animationDuration?: number;
-}
+// Helpers
+import { GizmoAxesHelper } from '../axes/gizmo-axes-helper';
+// Types
+import type { CameraAxesGizmoOptions } from '../types/gizmo/camera-axes-gizmo-options';
+import type { GizmoAxis } from '../types/axes/gizmo-axes';
 
 export class CameraAxesGizmo {
   private readonly renderer: WebGLRenderer;
