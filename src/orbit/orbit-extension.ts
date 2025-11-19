@@ -12,8 +12,8 @@ export class OrbitWithState extends OrbitControls {
   public isInteracting: boolean = false;
 
   private onMouseDown = () => (this.isInteracting = true);
-  private onMouseUp = () => (this.isInteracting = false);
   private onTouchStart = () => (this.isInteracting = true);
+  private onMouseUp = () => (this.isInteracting = false);
   private onTouchEnd = () => (this.isInteracting = false);
 
   public constructor(camera: Camera, domElement?: HTMLElement | null) {

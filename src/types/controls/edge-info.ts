@@ -21,12 +21,18 @@ export type EdgeInfo = {
   mesh?: THREE.Mesh | null;
 
   /**
-   * Индекс первой вершины ребра в буфере позиций `lines.geometry.attributes.position`.
+   * Индексы первой вершины ребра в буфере позиций `lines.geometry.attributes.position`.
    */
-  aIndex: number;
+  aIndices: number[];
 
   /**
-   * Индекс второй вершины ребра в буфере позиций `lines.geometry.attributes.position`.
+   * Индексы второй вершины ребра в буфере позиций `lines.geometry.attributes.position`.
    */
-  bIndex: number;
+  bIndices: number[];
+
+  /** Индексы вершин в `lines.geometry.attributes.position` для конца A. */
+  aEdgeIndices: number[];
+
+  /** Индексы вершин в `lines.geometry.attributes.position` для конца B. */
+  bEdgeIndices: number[];
 };
