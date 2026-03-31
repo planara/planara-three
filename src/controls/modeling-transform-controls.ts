@@ -79,11 +79,13 @@ export class ModelingTransformControls extends TransformControls {
     for (const idx of bIndices) {
       meshPos.setXYZ(idx, bLocalMesh.x, bLocalMesh.y, bLocalMesh.z);
     }
-    meshPos.needsUpdate = true;
 
+    meshPos.needsUpdate = true;
     meshGeo.computeVertexNormals();
     meshGeo.computeBoundingBox();
     meshGeo.computeBoundingSphere();
+
+    this._updateChildPointsBounds(mesh);
 
     {
       const toLocalLines = new THREE.Matrix4().copy(lines.matrixWorld).invert();
@@ -123,11 +125,13 @@ export class ModelingTransformControls extends TransformControls {
     for (const idx of vertexIndices) {
       meshPos.setXYZ(idx, P_localMesh.x, P_localMesh.y, P_localMesh.z);
     }
-    meshPos.needsUpdate = true;
 
+    meshPos.needsUpdate = true;
     meshGeo.computeVertexNormals();
     meshGeo.computeBoundingBox();
     meshGeo.computeBoundingSphere();
+
+    this._updateChildPointsBounds(mesh);
 
     // Применение трансформаций на внешние ребра фигуры
     if (lines && edgeVertexIndices?.length) {
@@ -213,5 +217,17 @@ export class ModelingTransformControls extends TransformControls {
     meshGeo.computeVertexNormals();
     meshGeo.computeBoundingBox();
     meshGeo.computeBoundingSphere();
+
+    this._updateChildPointsBounds(mesh);
+  }
+
+  private _updateChildPointsBounds(mesh: THREE.Mesh) {
+    for (const child of mesh.children) {
+      if ((child as any).isPoints) {
+        const geo = (child as THREE.Points).geometry as THREE.BufferGeometry;
+        geo.computeBoundingBox();
+        geo.computeBoundingSphere();
+      }
+    }
   }
 }
