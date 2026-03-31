@@ -4,6 +4,7 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 // Types
 import type { EdgeInfo } from '../types/controls/edge-info';
 import type { VertexInfo } from '../types/controls/vertex-info';
+import type { FaceInfo } from '../types/controls/face-info';
 
 /** Расширенные `TransformControls` для редактирования точек/ребер/граней модели */
 export class ModelingTransformControls extends TransformControls {
@@ -31,6 +32,15 @@ export class ModelingTransformControls extends TransformControls {
     if (edge) {
       if (this.mode === 'translate') {
         this._applyEdgeTranslate(obj as THREE.Line, edge);
+      }
+      return;
+    }
+
+    // грань
+    const face: FaceInfo | undefined = (obj as any).userData?.faceInfo;
+    if (face) {
+      if (this.mode === 'translate') {
+        this._applyFaceTranslate(obj as THREE.Mesh, face);
       }
       return;
     }
@@ -140,5 +150,37 @@ export class ModelingTransformControls extends TransformControls {
     ) as THREE.BufferAttribute;
     pPos.setXYZ(0, 0, 0, 0);
     pPos.needsUpdate = true;
+  }
+
+  private _applyFaceTranslate(proxy: THREE.Mesh, face: FaceInfo) {
+    const { mesh, proxyVertexMap } = face;
+    if (!mesh || !proxyVertexMap?.length) return;
+
+    const proxyGeo = proxy.geometry as THREE.BufferGeometry;
+    const proxyPos = proxyGeo.getAttribute('position') as THREE.BufferAttribute;
+    if (!proxyPos) return;
+
+    const meshGeo = mesh.geometry as THREE.BufferGeometry;
+    const meshPos = meshGeo.getAttribute('position') as THREE.BufferAttribute;
+    if (!meshPos) return;
+
+    const toLocalMesh = new THREE.Matrix4().copy(mesh.matrixWorld).invert();
+
+    for (let i = 0; i < proxyPos.count; i++) {
+      const localProxy = new THREE.Vector3().fromBufferAttribute(proxyPos, i);
+      const world = proxy.localToWorld(localProxy.clone());
+      const localMesh = world.clone().applyMatrix4(toLocalMesh);
+
+      const meshVertexIndex = proxyVertexMap[i];
+      if (meshVertexIndex == null) continue;
+
+      meshPos.setXYZ(meshVertexIndex, localMesh.x, localMesh.y, localMesh.z);
+    }
+
+    meshPos.needsUpdate = true;
+
+    meshGeo.computeVertexNormals();
+    meshGeo.computeBoundingBox();
+    meshGeo.computeBoundingSphere();
   }
 }
