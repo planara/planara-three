@@ -153,7 +153,7 @@ export class ModelingTransformControls extends TransformControls {
   }
 
   private _applyFaceTranslate(proxy: THREE.Mesh, face: FaceInfo) {
-    const { mesh, proxyVertexMap, vertexIndexGroups } = face;
+    const { mesh, proxyVertexMap, vertexIndexGroups, lines, lineVertexIndexGroups } = face;
     if (!mesh || !proxyVertexMap?.length || !vertexIndexGroups?.length) return;
 
     const proxyGeo = proxy.geometry as THREE.BufferGeometry;
@@ -165,25 +165,51 @@ export class ModelingTransformControls extends TransformControls {
     if (!meshPos) return;
 
     const toLocalMesh = new THREE.Matrix4().copy(mesh.matrixWorld).invert();
+    const toLocalLines = lines ? new THREE.Matrix4().copy(lines.matrixWorld).invert() : null;
+
+    const appliedGroups = new Set<number>();
 
     for (let i = 0; i < proxyPos.count; i++) {
+      const groupIndex = proxyVertexMap[i];
+      if (groupIndex == null || groupIndex < 0) continue;
+
+      // один и тот же groupIndex встречается много раз в proxy
+      if (appliedGroups.has(groupIndex)) continue;
+      appliedGroups.add(groupIndex);
+
       const localProxy = new THREE.Vector3().fromBufferAttribute(proxyPos, i);
       const world = proxy.localToWorld(localProxy.clone());
+
+      // mesh
       const localMesh = world.clone().applyMatrix4(toLocalMesh);
+      const meshGroup = vertexIndexGroups[groupIndex];
+      if (meshGroup?.length) {
+        for (const meshVertexIndex of meshGroup) {
+          meshPos.setXYZ(meshVertexIndex, localMesh.x, localMesh.y, localMesh.z);
+        }
+      }
 
-      const groupIndex = proxyVertexMap[i];
-      if (groupIndex == null) continue;
+      // lines
+      if (lines && lineVertexIndexGroups && toLocalLines) {
+        const localLines = world.clone().applyMatrix4(toLocalLines);
+        const lineGroup = lineVertexIndexGroups[groupIndex];
 
-      const group = vertexIndexGroups[groupIndex];
-      if (!group?.length) continue;
+        if (lineGroup?.length) {
+          const lineGeo = lines.geometry as THREE.BufferGeometry;
+          const linePos = lineGeo.getAttribute('position') as THREE.BufferAttribute;
 
-      for (const meshVertexIndex of group) {
-        meshPos.setXYZ(meshVertexIndex, localMesh.x, localMesh.y, localMesh.z);
+          for (const lineVertexIndex of lineGroup) {
+            linePos.setXYZ(lineVertexIndex, localLines.x, localLines.y, localLines.z);
+          }
+
+          linePos.needsUpdate = true;
+          lineGeo.computeBoundingBox();
+          lineGeo.computeBoundingSphere();
+        }
       }
     }
 
     meshPos.needsUpdate = true;
-
     meshGeo.computeVertexNormals();
     meshGeo.computeBoundingBox();
     meshGeo.computeBoundingSphere();
