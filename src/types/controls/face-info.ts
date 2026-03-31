@@ -26,6 +26,15 @@ export type FaceInfo = {
    */
   vertexIndexGroups: number[][];
 
+  /** Внешние line segments фигуры, если есть */
+  lines?: THREE.LineSegments;
+
+  /**
+   * Группы совпадающих вершин lines.geometry.
+   * Индекс группы должен совпадать с vertexIndexGroups / proxyVertexMap.
+   */
+  lineVertexIndexGroups?: number[][];
+
   /**
    * Отображение вершин proxy-геометрии в индексы вершин исходного меша.
    * Нужен для обратной записи transform'а proxy обратно в mesh geometry.
