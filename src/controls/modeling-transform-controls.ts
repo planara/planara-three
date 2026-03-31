@@ -153,8 +153,8 @@ export class ModelingTransformControls extends TransformControls {
   }
 
   private _applyFaceTranslate(proxy: THREE.Mesh, face: FaceInfo) {
-    const { mesh, proxyVertexMap } = face;
-    if (!mesh || !proxyVertexMap?.length) return;
+    const { mesh, proxyVertexMap, vertexIndexGroups } = face;
+    if (!mesh || !proxyVertexMap?.length || !vertexIndexGroups?.length) return;
 
     const proxyGeo = proxy.geometry as THREE.BufferGeometry;
     const proxyPos = proxyGeo.getAttribute('position') as THREE.BufferAttribute;
@@ -171,10 +171,15 @@ export class ModelingTransformControls extends TransformControls {
       const world = proxy.localToWorld(localProxy.clone());
       const localMesh = world.clone().applyMatrix4(toLocalMesh);
 
-      const meshVertexIndex = proxyVertexMap[i];
-      if (meshVertexIndex == null) continue;
+      const groupIndex = proxyVertexMap[i];
+      if (groupIndex == null) continue;
 
-      meshPos.setXYZ(meshVertexIndex, localMesh.x, localMesh.y, localMesh.z);
+      const group = vertexIndexGroups[groupIndex];
+      if (!group?.length) continue;
+
+      for (const meshVertexIndex of group) {
+        meshPos.setXYZ(meshVertexIndex, localMesh.x, localMesh.y, localMesh.z);
+      }
     }
 
     meshPos.needsUpdate = true;
